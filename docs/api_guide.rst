@@ -10,7 +10,7 @@ Nodela has a Restful API with URL endpoints corresponding to actions that users 
 
 .. api:
 
-API
+DID Sidechain API
 =================================
 using the following api ,we can easyly get a glimps of what is going on in the blockchain.
 

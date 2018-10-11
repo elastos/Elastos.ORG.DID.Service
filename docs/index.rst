@@ -23,9 +23,9 @@ General
 
 * `Elastos <https://elastos.org>`_
 
-* `Changelog <https://github.com/elastos/Elastos.ORG.Wallet.Service/blob/master/Changelog.md>`_
+* `Changelog <https://github.com/elastos/Elastos.ORG.DID.Service/blob/master/docs/Changlog.rst>`_
 
-* `Source Code <https://github.com/elastos/Elastos.ORG.Wallet.Service>`_
+* `Source Code <https://github.com/elastos/Elastos.ORG.DID.Service>`_
 
 
 
