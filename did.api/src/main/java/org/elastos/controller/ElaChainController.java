@@ -136,5 +136,11 @@ public class ElaChainController extends BaseController{
         return call(reqBody,TransferParamEntity.class,"did2MainCrossTransfer",service);
     }
 
+    @RequestMapping(value = "/tx/{txid}",method = RequestMethod.GET)
+    @ResponseBody
+    public String getTxByTxId(@PathVariable("txid") String txid){
+
+        return call(txid,String.class,"getTxByTxId",service);
+    }
 
 }

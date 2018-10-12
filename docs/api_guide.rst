@@ -49,6 +49,98 @@ generate a elastos wallet
    :statuscode 500:   internal error
    :statuscode 10001: process error
    
+get transaction by transaction id
+-----------------------------------------
+check out a transaction
+
+.. http:get:: /api/1/tx/(string:`txid`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/tx/62637968e72b06e4fa1de91542a3b71bd2462ba1d29e9c14c2ecfd042d1937ab HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+        "result":{
+            "vsize":346,
+            "locktime":0,
+            "txid":"62637968e72b06e4fa1de91542a3b71bd2462ba1d29e9c14c2ecfd042d1937ab",
+            "confirmations":6756,
+            "type":8,
+            "version":0,
+            "vout":[
+                {
+                    "outputlock":0,
+                    "address":"XQd1DCi6H62NQdWZQhJCRnrPn7sF9CTjaU",
+                    "assetid":"a3d0eaa466df74983b5d7c543de6904f4c9418ead5ffd6d25814234a96db37b0",
+                    "value":"0.10010000",
+                    "n":0
+                },
+                {
+                    "outputlock":0,
+                    "address":"EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                    "assetid":"a3d0eaa466df74983b5d7c543de6904f4c9418ead5ffd6d25814234a96db37b0",
+                    "value":"0.50249300",
+                    "n":1
+                }
+            ],
+            "blockhash":"4021e5c0ace86221016d3aa2b114adbd84bb03692bb6ddc6034794260834c570",
+            "size":346,
+            "blocktime":1538279155,
+            "payload":{
+                "CrossChainAddresses":[
+                    "EHLhCEbwViWBPwh1VhpECzYEA7jQHZ4zLv"
+                ],
+                "OutputIndexes":[
+                    0
+                ],
+                "CrossChainAmounts":[
+                    10000000
+                ]
+            },
+            "vin":[
+                {
+                    "sequence":0,
+                    "txid":"ba7bd41aae0a1371d9689ad04508f0754bb4a5333386411bccbdec718ce61625",
+                    "vout":1
+                }
+            ],
+            "payloadversion":0,
+            "attributes":[
+                {
+                    "data":"32323432343239353130383035363838303230",
+                    "usage":0
+                }
+            ],
+            "time":1538279155,
+            "programs":[
+                {
+                    "code":"21021421976fdbe518ca4e8b91a37f1831ee31e7b4ba62a32dfe2f6562efd57806adac",
+                    "parameter":"40cf6b8a18c861fcad1c23816221cc40a0d2e7d43065c070e66905ff7d6c634068542dd2a9b0bbb24de6a5a547b57767f908fc384cd6dc06298de11ebc3338aa79"
+                }
+            ],
+            "hash":"62637968e72b06e4fa1de91542a3b71bd2462ba1d29e9c14c2ecfd042d1937ab"
+        },
+        "status":200
+    }
+
+
+
+       :statuscode 200:   no error
+       :statuscode 400:   bad request
+       :statuscode 404:   not found request
+       :statuscode 500:   internal error
+       :statuscode 10001: process error
+
 
 
 Check the current network block height

@@ -73,6 +73,15 @@ public class ElaService {
         return JSON.toJSONString(new ReturnMsgEntity().setResult(result).setStatus(retCodeConfiguration.SUCC()));
     }
 
+    /**
+     * get transaction by transaction id
+     * @param txid
+     * @return
+     */
+    public String getTxByTxId(String txid){
+        return reqChainData(nodeConfiguration.sendRawTransaction(ChainType.DID_SIDECHAIN)+ "/" + txid);
+    }
+
     public String sendRawTx(RawTxEntity rawTxEntity){
         String rawTx = JSON.toJSONString(rawTxEntity);
         ChainType type = rawTxEntity.getType();
