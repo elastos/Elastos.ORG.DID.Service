@@ -48,6 +48,156 @@ generate a elastos wallet
    :statuscode 404:   not found request
    :statuscode 500:   internal error
    :statuscode 10001: process error
+
+
+generate mnemonic phrases
+-----------------------------------------
+please copy your mnemonic to somewhere safe
+
+.. http:get:: /api/1/mnemonic
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/mnemonic HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "result":"obtain pill nest sample caution stone candy habit silk husband give net",
+          "status":200
+      }
+
+   :statuscode 200:   no error
+   :statuscode 400:   bad request
+   :statuscode 404:   not found request
+   :statuscode 500:   internal error
+   :statuscode 10001: process error 
+      
+using mnemonic to retrive wallet
+-----------------------------------------
+Get wallet of index 1
+
+.. http:post:: /api/1/hd
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/hd HTTP/1.1
+    Host: localhost:8090
+    Content-Type: application/json
+
+      {
+          "mnemonic":"obtain pill nest sample caution stone candy habit silk husband give net",
+          "index":1
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Vary: Accept
+      Content-Type: application/json
+
+      {
+          "result": {
+              "privateKey": "7A87D1C43FBDF76689A5A66A369B34E92391748F64D2952BCE3E6D5E06A8D8CD",
+              "publicKey": "02345363ACEA3A744DC149193171A87B6888F4CD108821CC1F9AD689CCA53489AC",
+              "publicAddress": "EXoaGjh6H9afjDX7DUBY1MpsdLz4Vo16Qa"
+          },
+          "status": 200
+      }
+Get wallet from 1 to 10
+
+.. http:post:: /api/1/hd
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/hd HTTP/1.1
+    Host: localhost:8090
+    Content-Type: application/json
+
+      {
+          "mnemonic":"obtain pill nest sample caution stone candy habit silk husband give net",
+          "start":1,
+          "end":10
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Vary: Accept
+      Content-Type: application/json
+
+      {
+        "result": [
+            {
+                "privateKey": "7A87D1C43FBDF76689A5A66A369B34E92391748F64D2952BCE3E6D5E06A8D8CD",
+                "publicKey": "02345363ACEA3A744DC149193171A87B6888F4CD108821CC1F9AD689CCA53489AC",
+                "publicAddress": "EXoaGjh6H9afjDX7DUBY1MpsdLz4Vo16Qa"
+            },
+            {
+                "privateKey": "D0E8FB87B32EC69EC8527486AF6780DB06983F395F8394372B88F9F29F738A91",
+                "publicKey": "02371040B81C28B3A194826E1F8905687E06E94D5AEB1292C72051BF6ED314888D",
+                "publicAddress": "EfPZc1VdGHztzeRag9ayb4MLPZA7psGuGs"
+            },
+            {
+                "privateKey": "5892859E60028872E63AEC018217F6A9A38AFC05F4FA4DB2FA2D07455B6C46E1",
+                "publicKey": "0371EAD623897AEA29CBFB2ABC9A361E5862DCAEF68A265C6D4F8A506D3353CFC8",
+                "publicAddress": "EPc6Mmx78YN8Mwa11qjLgSAgPjAWU7LJZu"
+            },
+            {
+                "privateKey": "9F8A564E7CC0E4880006B8029A1FA220A60AF426D2CD90DEB52F4CCD5E89087C",
+                "publicKey": "0323671B0FB55471D885300445E25893A1EF304484C73BD6F380959BF90987A0A9",
+                "publicAddress": "EPgRBCe4BwNVpWFdNhLhTEebQG35b9MoFz"
+            },
+            {
+                "privateKey": "CDA64875FED6B901595C732BD71F925C6CACF5DBC503F7C472D950975A90EF05",
+                "publicKey": "027B4AEFD9208E25BD27F0416729E73187CB22B58859D40E756451D3B73079FD54",
+                "publicAddress": "EKi96gzJSQj3zQ6LybXwNPmEguj66H8SjN"
+            },
+            {
+                "privateKey": "1F3AE27B2E070E8A95257295FE602113D81A30B7554C3F77378A1CD04AEBBE53",
+                "publicKey": "032063D96363FE153F85DCC0550C2753EEC407334DBACCDD933F3DC45CBC7BC1E0",
+                "publicAddress": "EVVEw7p4wcfdXPMRzZhcD7TEGR1EXBG291"
+            },
+            {
+                "privateKey": "9C6E82523939E11A455E2962EB0DE49211E7F4216D76836D557D9D395C59C4DB",
+                "publicKey": "02622D0333371BFF4DB1512F655A22B1D8783B02E703477E35B76974EA2D9C89B9",
+                "publicAddress": "EbYdmcS99kCo8D44AphCBjtE4SmGLeGsWw"
+            },
+            {
+                "privateKey": "8A69ADD6A8534C2E7D52067D8929D65354F8D218EE0FF1FA1C631A334821E85E",
+                "publicKey": "024A4751A73AA5E186D83C171449FB8AF699C6EE0BC24DB34B85EEF5FA6EEDBD27",
+                "publicAddress": "EcBVvLx31eN69KS3oWNLxxdaGK2UKUxg3g"
+            },
+            {
+                "privateKey": "4E2C9E4C320AF08C943AADA5BC9106E053DFD2AFC8A3F229213DB6BE36DB71D8",
+                "publicKey": "0354674BFA392313760DD66936A2BEC9CDD8DA7AB264D920FC4AF0B14704646BA5",
+                "publicAddress": "EPbCbYYCwbyxFQgU9XNAWwAFRbcJtDC7Tt"
+            },
+            {
+                "privateKey": "31E5DB750E2BAC324A0C7F59B2BAB9C574232B811F7A4650352AAD31A3C2A941",
+                "publicKey": "036A2ED5B9F57636460B4CB38A6103E03A08F8A6E5B4F0326CD303B6407E7CC303",
+                "publicAddress": "ESzmxv7R4Tkt1SakscXR1yxTYtPwuXtvZP"
+            }
+        ],
+        "status": 200
+    }
+
    
 get transaction by transaction id
 -----------------------------------------

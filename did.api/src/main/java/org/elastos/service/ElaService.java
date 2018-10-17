@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elastos.api.Basic;
 import org.elastos.api.SingleSignTransaction;
@@ -28,6 +29,7 @@ import org.elastos.entity.*;
 import org.elastos.exception.ApiInternalException;
 import org.elastos.exception.ApiRequestDataException;
 import org.elastos.util.*;
+import org.elastos.util.ela.ElaHdSupport;
 import org.elastos.util.ela.ElaKit;
 import org.elastos.util.ela.ElaSignTool;
 import org.slf4j.Logger;
@@ -71,6 +73,33 @@ public class ElaService {
         result.put("publicKey",publicKey);
         result.put("address",publicAddr);
         return JSON.toJSONString(new ReturnMsgEntity().setResult(result).setStatus(retCodeConfiguration.SUCC()));
+    }
+
+    public String mnemonic(){
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(ElaHdSupport.generateMnemonic()).setStatus(retCodeConfiguration.SUCC()));
+    }
+
+    public String genHdWallet(HdWalletEntity entity) throws Exception{
+        JSONArray array = new JSONArray();
+        String mnemonic = entity.getMnemonic();
+        Integer start = entity.getStart();
+        Integer end = entity.getEnd();
+        Integer index = entity.getIndex();
+        if(mnemonic != null && index != null){
+            return genHdWallet(mnemonic,index);
+        }
+        if(mnemonic == null || start < 0 || start > end){
+            throw new ApiRequestDataException("invalid param");
+        }
+        for(int i=start;i<=end;i++){
+            array.add(JSONObject.fromObject(ElaHdSupport.generate(mnemonic,i)));
+        }
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(array).setStatus(retCodeConfiguration.SUCC()));
+    }
+
+    public String genHdWallet(String mnemonic,int index) throws Exception{
+
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(JSONObject.fromObject(ElaHdSupport.generate(mnemonic,index))).setStatus(retCodeConfiguration.SUCC()));
     }
 
     /**
@@ -250,6 +279,10 @@ public class ElaService {
         String privKey = Ela.getPrivateKey();
         String did = Ela.getIdentityIDFromPrivate(privKey);
         result.put("privateKey",privKey);
+        String publicKey = Ela.getPublicFromPrivate(privKey);
+        result.put("publicKey",publicKey);
+        String publicAddr = Ela.getAddressFromPrivate(privKey);
+        result.put("publicAddr",publicAddr);
         result.put("did",did);
         return JSON.toJSONString(new ReturnMsgEntity().setResult(result).setStatus(retCodeConfiguration.SUCC()));
     }
@@ -651,7 +684,12 @@ public class ElaService {
         paraListMap.put("Transactions", txList);
         Map<String,Object> txListMap = new HashMap<>();
         txList.add(txListMap);
-        if(!StrKit.isBlank(data)) {
+        Map dataMap = (Map) JSON.parse(data);
+        boolean isPayload = false;
+        if(dataMap.containsKey("Id") && dataMap.containsKey("Contents")){
+            txListMap.put("Payload",JSONObject.fromObject(data));
+            isPayload = true;
+        }else if(!StrKit.isBlank(data)) {
             txListMap.put("Memo", data);
         }
 
@@ -703,6 +741,12 @@ public class ElaService {
             Map<String,Object> utxoOutputsDetail = new HashMap<>();
             utxoOutputsDetail.put("address", addrs.get(i));
             utxoOutputsDetail.put("amount", Math.round(amts.get(i) * basicConfiguration.ONE_ELA()));
+            utxoOutputsArray.add(utxoOutputsDetail);
+        }
+        if(isPayload){
+            Map<String,Object> utxoOutputsDetail = new HashMap<>();
+            utxoOutputsDetail.put("address", dataMap.get("Id"));
+            utxoOutputsDetail.put("amount", 0);
             utxoOutputsArray.add(utxoOutputsDetail);
         }
         double leftMoney = (spendMoney - (basicConfiguration.FEE() + smAmt));
@@ -830,4 +874,40 @@ public class ElaService {
         return transfer(entity);
     }
 
+
+    /**
+     * set did info into memo
+     * @param info
+     * @return
+     * @throws Exception
+     */
+    public String setDidPayload(DidInfoEntity info) throws Exception{
+        String data = null;
+        try {
+            data = JSON.toJSONString(info.getInfo());
+        }catch (Exception ex){
+            throw new ApiRequestDataException("DID info must be a json object");
+        }
+        String privateKey = info.getPrivateKey();
+        String recevAddr = didConfiguration.getAddress();
+        String fee = didConfiguration.getFee();
+        TransferParamEntity transferParamEntity = new TransferParamEntity();
+        transferParamEntity.setMemo(data);
+
+        String addr = Ela.getAddressFromPrivate(privateKey);
+        List<Map> lstMap = new ArrayList<>();
+        Map sm = new HashMap();
+        sm.put("address",addr);
+        sm.put("privateKey",privateKey);
+        lstMap.add(sm);
+        transferParamEntity.setSender(lstMap);
+        List<Map> receiverList = new ArrayList<>();
+        Map receivMap = new HashMap();
+        receivMap.put("address",recevAddr);
+        receivMap.put("amount",fee);
+        receiverList.add(receivMap);
+        transferParamEntity.setReceiver(receiverList);
+        transferParamEntity.setType(ChainType.DID_SIDECHAIN);
+        return transfer(transferParamEntity);
+    }
 }

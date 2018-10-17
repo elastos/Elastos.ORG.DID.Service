@@ -37,6 +37,15 @@ public class NodeConfiguration {
     private String utxoByAddr          ;
     private String sendRawTransaction  ;
     private String transactionPool     ;
+    private String didJSONRPC          ;
+
+    public String getDidJSONRPC() {
+        return didJSONRPC;
+    }
+
+    public void setDidJSONRPC(String didJSONRPC) {
+        this.didJSONRPC = didJSONRPC;
+    }
 
     public String getConnectionCount(ChainType type) {
         return didPrefix + connectionCount;
