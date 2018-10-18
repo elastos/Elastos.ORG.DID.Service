@@ -604,7 +604,7 @@ using private key to retrive did .
 
 Set DID information 
 ----------------------
-setting information into did. using did related privateKey .
+setting information into did. the first private key is used to pay the miner fee. the second private key is the private key of did ,used to sign the info.
 
 .. http:post:: /api/1/setDidInfo
    
@@ -616,10 +616,17 @@ setting information into did. using did related privateKey .
       Host: localhost
 
         {
-            "privateKey":"FABB669B7D2FF2BEBBED1C3F1C9A9519C48993D1FC9D89DCB4C7CA14BDB8C99F",
-            "info":{
-                "name":"clark"
-            }
+          "privateKey":"C740869D015E674362B1F441E3EDBE1CBCF4FE8B709AA1A77E5CCA2C92BAF99D",
+          "settings":{
+              "privateKey":"E763239857B390502289CF75FF06EEEDC3252A302C50E1CBB7E5FAC8A703486F",
+              "info":{
+                  "family":{
+                      "child":4000,
+                      "money":10000,
+                      "history":"hey myfriend,watch your language"
+                  }
+              }
+          } 
         }
 
    **Example Response**:
@@ -636,7 +643,7 @@ setting information into did. using did related privateKey .
 
 Get DID information 
 ----------------------
-get value from did using transaction hash and `key` 
+get value from did using transaction hash and `key` , the returned `result.did` is the did that has the information. 
 
 .. http:post:: /api/1/getDidInfo
    
@@ -649,9 +656,12 @@ get value from did using transaction hash and `key`
 
         {
             "txIds":[
-                "1170C18870D2547207B85BD9859DC97886CA8F570399DA0BCFB40A0BDC2A1B20"
+                "667fb8161fd9768529580c9c3de1f971c94fc721000694aa3670b4089867284d",
+                "f1e80bd3ebe4bd6a5e9757d6fcdf52d5ad83723e149a3d6cea4a946c8c970d3b",
+                "4213d73e3764750cbab09593db213ac1ea222947d91e6e6d2c243d2461bd034c",
+                "404496578764f0d57b138c086dbc37d1e9d2653aa6bb5f2661bf548c5f9942e2"
             ],
-            "key":"name"
+            "key":"family"
         }
 
    **Example Response**:
@@ -662,8 +672,15 @@ get value from did using transaction hash and `key`
       Content-Type: application/json
 
       {
-          "result": "clark",
-          "status": 200
+            "result": {
+                "data": {
+                    "money": 10000,
+                    "history": "hey,watch your language",
+                    "child": 4
+                },
+                "did": "iYnguKQcpeVyrpN6edamSkky1brvQvCWr6"
+            },
+            "status": 200
       }
 
 transfer DID asset using private key 

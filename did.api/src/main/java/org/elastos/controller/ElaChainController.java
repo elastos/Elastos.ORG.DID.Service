@@ -6,10 +6,7 @@
  */
 package org.elastos.controller;
 
-import org.elastos.entity.DidInfoEntity;
-import org.elastos.entity.HdWalletEntity;
-import org.elastos.entity.SignDataEntity;
-import org.elastos.entity.TransferParamEntity;
+import org.elastos.entity.*;
 import org.elastos.service.ElaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -131,21 +128,21 @@ public class ElaChainController extends BaseController{
     @ResponseBody
     public String setDidInfo(@RequestBody String reqBody){
 
-        return call(reqBody,DidInfoEntity.class,"setDidInfo",service);
+        return call(reqBody,SetDidInfoEntity.class,"setDidInfo",service);
     }
 
     @RequestMapping(value = "/getDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
     public String getDidInfo(@RequestBody String reqBody){
 
-        return call(reqBody,DidInfoEntity.class,"getDidInfo",service);
+        return call(reqBody,GetDidInfoEntity.class,"getDidInfo",service);
     }
 
     @RequestMapping(value = "/setDidPayload",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
     public String getDidPayload(@RequestBody String reqBody){
 
-        return call(reqBody,DidInfoEntity.class,"setDidPayload",service);
+        return call(reqBody,SetDidInfoEntity.class,"setDidPayload",service);
     }
 
     @RequestMapping(value = "/cross/d2m/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")

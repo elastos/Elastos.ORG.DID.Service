@@ -14,7 +14,6 @@ import java.util.*;
 import com.alibaba.fastjson.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.elastos.api.Basic;
 import org.elastos.api.SingleSignTransaction;
 import org.elastos.conf.BasicConfiguration;
 import org.elastos.conf.DidConfiguration;
@@ -24,9 +23,7 @@ import org.elastos.ela.ECKey;
 import org.elastos.ela.Ela;
 import org.elastos.ela.SignTool;
 import org.elastos.ela.Util;
-import org.elastos.elaweb.ElaController;
 import org.elastos.entity.*;
-import org.elastos.exception.ApiInternalException;
 import org.elastos.exception.ApiRequestDataException;
 import org.elastos.util.*;
 import org.elastos.util.ela.ElaHdSupport;
@@ -780,14 +777,16 @@ public class ElaService {
      * @return
      * @throws Exception
      */
-    public String setDidInfo(DidInfoEntity info) throws Exception{
+    public String setDidInfo(SetDidInfoEntity info) throws Exception{
         String data = null;
+        SetDidInfoEntity.Setting setting = info.getSettings();
         try {
-            data = JSON.toJSONString(info.getInfo());
+            data = JSON.toJSONString(setting.getInfo());
         }catch (Exception ex){
             throw new ApiRequestDataException("DID info must be a json object");
         }
-        String privateKey = info.getPrivateKey();
+        // using to sign did setting info
+        String privateKey = setting.getPrivateKey();
         String recevAddr = didConfiguration.getAddress();
         String fee = didConfiguration.getFee();
         TransferParamEntity transferParamEntity = new TransferParamEntity();
@@ -799,11 +798,12 @@ public class ElaService {
         String rawMemo = JSON.toJSONString(respMap.get("result"));
         logger.debug("rawMemo:{}",rawMemo);
         transferParamEntity.setMemo(rawMemo);
-        String addr = Ela.getAddressFromPrivate(privateKey);
+        String payPrivKey = info.getPrivateKey();
+        String addr = Ela.getAddressFromPrivate(payPrivKey);
         List<Map> lstMap = new ArrayList<>();
         Map sm = new HashMap();
         sm.put("address",addr);
-        sm.put("privateKey",privateKey);
+        sm.put("privateKey",payPrivKey);
         lstMap.add(sm);
         transferParamEntity.setSender(lstMap);
         List<Map> receiverList = new ArrayList<>();
@@ -822,45 +822,103 @@ public class ElaService {
      * @return
      * @throws Exception
      */
-    public String getDidInfo(DidInfoEntity entity) throws Exception{
+    public String getDidInfo(GetDidInfoEntity entity) throws Exception{
+
         List<String> txidList = entity.getTxIds();
         if(txidList.size() == 0){
             return JSON.toJSONString(new ReturnMsgEntity().setResult(Errors.DID_NO_SUCH_INFO.val()).setStatus(retCodeConfiguration.SUCC()));
         }
         String key = entity.getKey();
-        //TODO deal with the same field
+        if(txidList.size()>1){
+            txidList = filterTxByHeight(txidList);
+        }
+        Map resultM = new HashMap();
         for(int i=0;i<txidList.size();i++){
-            String txid = txidList.get(i);
-            String txinfo = getTransactionByHash(txid,ChainType.DID_SIDECHAIN);
-            Map txinfoMap = (Map)JSON.parse(txinfo);
-            Object orst = txinfoMap.get("result");
-            if ((orst instanceof Map) == false){
-                continue;
-            }
-            Map resultMap = (Map)orst;
-            List<Map> attrList = (List)resultMap.get("attributes");
-            String hexData = (String)attrList.get(0).get("data");
-            Map rawMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexData)));
-            SignDataEntity signDataEntity = new SignDataEntity();
-            String hexMsg = (String)rawMap.get("msg");
-            signDataEntity.setMsg(hexMsg);
-            signDataEntity.setSig((String)rawMap.get("sig"));
-            signDataEntity.setPub((String)rawMap.get("pub"));
-            String verifyResp = verify(signDataEntity);
-            Map verifyMap = (Map)JSON.parse(verifyResp);
-            Boolean verified = (Boolean)verifyMap.get("result");
-            if (!verified){
-                continue;
-            }else{
-                Map rawMsgMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexMsg)));
-                Object v = rawMsgMap.get(key);
-                if (v == null){
+            try{
+                String txid = txidList.get(i);
+                String txinfo = getTransactionByHash(txid,ChainType.DID_SIDECHAIN);
+                Map txinfoMap = (Map)JSON.parse(txinfo);
+                Object orst = txinfoMap.get("result");
+                if ((orst instanceof Map) == false){
                     continue;
                 }
-                return JSON.toJSONString(new ReturnMsgEntity().setResult(v).setStatus(retCodeConfiguration.SUCC()));
+                Map resultMap = (Map)orst;
+                List<Map> attrList = (List)resultMap.get("attributes");
+                String hexData = (String)attrList.get(0).get("data");
+                Map rawMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexData)));
+                SignDataEntity signDataEntity = new SignDataEntity();
+                String hexMsg = (String)rawMap.get("msg");
+                String pub = (String)rawMap.get("pub");
+                signDataEntity.setMsg(hexMsg);
+                signDataEntity.setSig((String)rawMap.get("sig"));
+                signDataEntity.setPub(pub);
+                String verifyResp = verify(signDataEntity);
+                Map verifyMap = (Map)JSON.parse(verifyResp);
+                Boolean verified = (Boolean)verifyMap.get("result");
+                if (!verified){
+                    continue;
+                }else{
+                    Map rawMsgMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexMsg)));
+                    Object v = rawMsgMap.get(key);
+                    if (v == null){
+                        continue;
+                    }
+                    resultM.put("data",v);
+                    String did = Util.ToAddress(Util.ToCodeHash(Util.CreateSingleSignatureRedeemScript(DatatypeConverter.parseHexBinary(pub),3),3));
+                    resultM.put("did",did);
+                    return JSON.toJSONString(new ReturnMsgEntity().setResult(resultM).setStatus(retCodeConfiguration.SUCC()));
+                }
+            }catch (Exception ex){
+                logger.warn(ex.getMessage());
+                continue;
             }
+
         }
         return JSON.toJSONString(new ReturnMsgEntity().setResult(Errors.DID_NO_SUCH_INFO.val()).setStatus(retCodeConfiguration.SUCC()));
+    }
+
+
+    private List<String> filterTxByHeight(List<String> txids){
+
+        String txStr = "";
+        String seperator = "-";
+
+
+        for(int j=0;j<txids.size();j++){
+
+            String currTxid = txids.get(j);
+            Integer currBlockTime = getBlockTime(currTxid);
+            if(currBlockTime == null){
+                continue;
+            }
+            for(int i=j+1;i<txids.size();i++){
+                String txid = txids.get(i);
+                Integer blocktime = getBlockTime(txid);
+                if(blocktime == null){
+                    continue;
+                }
+                if(blocktime > currBlockTime){
+                    currTxid = txid;
+                    currBlockTime = blocktime;
+                }
+            }
+            txStr += currTxid + seperator;
+        }
+
+        txStr = txStr.substring(0,txStr.length()-1);
+        return Arrays.asList(txStr.split(seperator));
+    }
+
+    private Integer getBlockTime(String txid){
+        String result = getTransactionByHash(txid);
+        Map<String,Object> mr = (Map)JSON.parse(result);
+        Object rmr = mr.get("result");
+        if(!(rmr instanceof Map)){
+            logger.warn("txid is not exists");
+            return null;
+        }
+        Integer blocktime = (Integer)((Map)rmr).get("blocktime");
+        return blocktime;
     }
 
     /**
@@ -881,10 +939,10 @@ public class ElaService {
      * @return
      * @throws Exception
      */
-    public String setDidPayload(DidInfoEntity info) throws Exception{
+    public String setDidPayload(SetDidInfoEntity info) throws Exception{
         String data = null;
         try {
-            data = JSON.toJSONString(info.getInfo());
+            data = JSON.toJSONString(info.getSettings().getInfo());
         }catch (Exception ex){
             throw new ApiRequestDataException("DID info must be a json object");
         }
