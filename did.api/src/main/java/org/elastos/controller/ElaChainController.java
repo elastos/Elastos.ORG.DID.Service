@@ -36,7 +36,7 @@ public class ElaChainController extends BaseController{
 
     @RequestMapping(value = "/hd",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String genHdWallet(@RequestBody String reqBody){
+    public String genHdWallet(@RequestAttribute String reqBody){
         return call(reqBody,HdWalletEntity.class,"genHdWallet",service);
     }
     @RequestMapping(value = "/currHeight",method = RequestMethod.GET)
@@ -105,49 +105,49 @@ public class ElaChainController extends BaseController{
 
     @RequestMapping(value = "/sign",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String sign(@RequestBody String reqBody){
+    public String sign(@RequestAttribute String reqBody){
 
         return call(reqBody,SignDataEntity.class,"sign",service);
     }
 
     @RequestMapping(value = "/verify",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String verify(@RequestBody String reqBody){
+    public String verify(@RequestAttribute String reqBody){
 
         return call(reqBody,SignDataEntity.class,"verify",service);
     }
 
     @RequestMapping(value = "/did/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String didTransfer(@RequestBody String reqBody){
+    public String didTransfer(@RequestAttribute String reqBody){
 
         return call(reqBody,TransferParamEntity.class,"didTransfer",service);
     }
 
     @RequestMapping(value = "/setDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String setDidInfo(@RequestBody String reqBody){
+    public String setDidInfo(@RequestAttribute String reqBody){
 
         return call(reqBody,SetDidInfoEntity.class,"setDidInfo",service);
     }
 
     @RequestMapping(value = "/getDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String getDidInfo(@RequestBody String reqBody){
+    public String getDidInfo(@RequestAttribute String reqBody){
 
         return call(reqBody,GetDidInfoEntity.class,"getDidInfo",service);
     }
 
     @RequestMapping(value = "/setDidPayload",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String getDidPayload(@RequestBody String reqBody){
+    public String getDidPayload(@RequestAttribute String reqBody){
 
         return call(reqBody,SetDidInfoEntity.class,"setDidPayload",service);
     }
 
     @RequestMapping(value = "/cross/d2m/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public String d2mTransfer(@RequestBody String reqBody){
+    public String d2mTransfer(@RequestAttribute String reqBody){
 
         return call(reqBody,TransferParamEntity.class,"did2MainCrossTransfer",service);
     }

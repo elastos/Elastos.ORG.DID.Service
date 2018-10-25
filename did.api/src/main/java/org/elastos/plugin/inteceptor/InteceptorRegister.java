@@ -6,7 +6,9 @@
  */
 package org.elastos.plugin.inteceptor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -17,10 +19,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * 9/4/18
  *
  */
-@Configuration
+@Component
 public class InteceptorRegister implements WebMvcConfigurer {
+
+    @Autowired
+    private ApiInterceptor interceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new ApiInterceptor());
+        registry.addInterceptor(interceptor);
     }
 }
