@@ -14,14 +14,14 @@ Run with `Maven`：
 <dependency>
     <groupId>org.elastos</groupId>
     <artifactId>did.api</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 or `Gradle`:
 
 ```sh
-compile 'org.elastos:did.api:0.0.2'
+compile 'org.elastos:did.api:0.0.5'
 ```
 
 Add A Entry Class
@@ -80,6 +80,5 @@ logging.level.org.elastos=DEBUG
 ## did setting field output receiving adddress , you can set you own receiving address
 did.address              =EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA
 did.fee                  =0.0001
-did.mainChainAddress     =XQd1DCi6H62NQdWZQhJCRnrPn7sF9CTjaU
 did.burnAddress          =0000000000000000000000000000000000
 ```
