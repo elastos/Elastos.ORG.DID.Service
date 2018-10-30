@@ -683,13 +683,20 @@ public class ElaService {
         paraListMap.put("Transactions", txList);
         Map<String,Object> txListMap = new HashMap<>();
         txList.add(txListMap);
-        Map dataMap = (Map) JSON.parse(data);
         boolean isPayload = false;
-        if(dataMap.containsKey("Id") && dataMap.containsKey("Contents")){
-            txListMap.put("Payload",JSONObject.fromObject(data));
-            isPayload = true;
-        }else if(!StrKit.isBlank(data)) {
-            txListMap.put("Memo", data);
+        Map val = null;
+        if(!StrKit.isBlank(data)){
+            try {
+                val = (Map)JSON.parse(data);
+                if(val.containsKey("Id") && val.containsKey("Contents")){
+                    txListMap.put("Payload",JSONObject.fromObject(data));
+                    isPayload = true;
+                }else{
+                    txListMap.put("Memo", data);
+                }
+            }catch(Exception ex){
+                txListMap.put("Memo", data);
+            }
         }
 
         int index = -1;
@@ -744,7 +751,7 @@ public class ElaService {
         }
         if(isPayload){
             Map<String,Object> utxoOutputsDetail = new HashMap<>();
-            utxoOutputsDetail.put("address", dataMap.get("Id"));
+            utxoOutputsDetail.put("address", ((Map)(val)).get("Id"));
             utxoOutputsDetail.put("amount", 0);
             utxoOutputsArray.add(utxoOutputsDetail);
         }
@@ -769,6 +776,45 @@ public class ElaService {
         entity.setData(rawData);
         entity.setType(type);
         return sendRawTx(entity);
+    }
+
+    public String setDidInfoOffline(SetDidInfoEntity info) throws Exception {
+        String data = null;
+        SetDidInfoEntity.Setting setting = info.getSettings();
+        try {
+            data = JSON.toJSONString(setting.getInfo());
+        }catch (Exception ex){
+            throw new ApiRequestDataException("DID info must be a json object");
+        }
+        // using to sign did setting info
+        String privateKey = setting.getPrivateKey();
+        String recevAddr = didConfiguration.getAddress();
+        String fee = didConfiguration.getFee();
+        TransferParamEntity transferParamEntity = new TransferParamEntity();
+        SignDataEntity signDataEntity = new SignDataEntity();
+        signDataEntity.setPrivateKey(privateKey);
+        signDataEntity.setMsg(data);
+        String response = sign(signDataEntity);
+        Map respMap = (Map)JSON.parse(response);
+        String rawMemo = JSON.toJSONString(respMap.get("result"));
+        logger.debug("rawMemo:{}",rawMemo);
+        transferParamEntity.setMemo(rawMemo);
+        String payPrivKey = info.getPrivateKey();
+        String addr = Ela.getAddressFromPrivate(payPrivKey);
+        List<Map> lstMap = new ArrayList<>();
+        Map sm = new HashMap();
+        sm.put("address",addr);
+        sm.put("privateKey",payPrivKey);
+        lstMap.add(sm);
+        transferParamEntity.setSender(lstMap);
+        List<Map> receiverList = new ArrayList<>();
+        Map receivMap = new HashMap();
+        receivMap.put("address",recevAddr);
+        receivMap.put("amount",fee);
+        receiverList.add(receivMap);
+        transferParamEntity.setReceiver(receiverList);
+        transferParamEntity.setType(ChainType.DID_SIDECHAIN);
+        return transfer(transferParamEntity);
     }
 
     /**
