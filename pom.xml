@@ -5,7 +5,7 @@
 
 	<groupId>org.elastos</groupId>
 	<artifactId>did.service</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.6</version>
 	<modules>
 		<module>did.api</module>
 	</modules>
