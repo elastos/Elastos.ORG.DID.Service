@@ -314,7 +314,7 @@ create a cross chain offline transaction utxo json data , you should sign it usi
                       "CrossChainAsset": [
                           {
                               "amount": 120001,
-                              "address": "ELag7vYvKcUBVKJkWosBQw73HSx8madjcP"
+                              "address": "0000000000000000000000000000000000"
                           }
                       ],
                       "Fee": 20000,
