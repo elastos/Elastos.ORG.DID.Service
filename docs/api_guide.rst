@@ -262,6 +262,78 @@ create a offline transaction utxo json data , you should sign it using private k
         "status": 200
     }
 
+create offline cross chain transaction
+-----------------------------------------
+create a cross chain offline transaction utxo json data , you should sign it using private key
+
+.. http:post:: /api/1/createCrossTx
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/createCrossTx HTTP/1.1
+    Host: localhost
+
+      {
+          "inputs":[
+              "EZEKtpUwDXyKLvq5JPRfezqA5k5G5rWa3Z",
+              "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+          ],
+          "outputs":[
+              {
+                  "addr":"ELag7vYvKcUBVKJkWosBQw73HSx8madjcP",
+                  "amt":120001
+              }
+          ]
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "result": {
+              "Transactions": [
+                  {
+                      "UTXOInputs": [
+                          {
+                              "address": "EZEKtpUwDXyKLvq5JPRfezqA5k5G5rWa3Z",
+                              "txid": "a7f06797be1d354d27173045c63426d20f9085c5a175ea5fcc38a771c7148406",
+                              "index": 1
+                          },
+                          {
+                              "address": "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                              "txid": "9e17bb1448f5b5805c682afff28226193884e84a72d8680a35ce0fcf2ec70d97",
+                              "index": 1
+                          }
+                      ],
+                      "CrossChainAsset": [
+                          {
+                              "amount": 120001,
+                              "address": "ELag7vYvKcUBVKJkWosBQw73HSx8madjcP"
+                          }
+                      ],
+                      "Fee": 20000,
+                      "Outputs": [
+                          {
+                              "amount": 130001,
+                              "address": "XKUh4GLhFJiqAMTF6HyWQrV9pK9HcGUdfJ"
+                          },
+                          {
+                              "amount": 34198299,
+                              "address": "EZEKtpUwDXyKLvq5JPRfezqA5k5G5rWa3Z"
+                          }
+                      ]
+                  }
+              ]
+          },
+          "status": 200
+      }
+
 
 send offline transaction
 -----------------------------------------
