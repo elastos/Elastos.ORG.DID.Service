@@ -7,8 +7,11 @@
 package org.elastos;
 
 import com.alibaba.fastjson.JSON;
+import net.sf.json.JSONObject;
+import org.elastos.ela.Ela;
 import org.elastos.entity.SetDidInfoEntity;
 import org.elastos.util.JsonUtil;
+import org.elastos.util.StrKit;
 import org.junit.Test;
 
 import java.util.Map;
@@ -89,5 +92,29 @@ public class JSON_Test {
         Map mm = (Map)m.get("result");
         Object o = mm.get("blocktime");
         System.out.println();
+    }
+
+    @Test
+    public void test02(){
+        Map val = null;
+        String data = "{\"Id\":1,\"Contents\":\"name\"}";
+        if(!StrKit.isBlank(data)){
+            try {
+                val = (Map)JSON.parse(data);
+                if(val.containsKey("Id") && val.containsKey("Contents")){
+                    System.out.print(1);
+                }else{
+                    System.out.print(2);
+                }
+            }catch(Exception ex){
+                System.out.print(2);
+            }
+        }
+    }
+
+    @Test
+    public void priv2Pub(){
+        String publicKey = Ela.getPublicFromPrivate("1615CC0AB02168680354E07048F9CE54B2921847F68453586C4A2DBC23BA2C9D");
+        System.out.print(publicKey);
     }
 }

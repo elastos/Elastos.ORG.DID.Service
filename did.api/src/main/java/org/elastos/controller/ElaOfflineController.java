@@ -8,6 +8,7 @@ package org.elastos.controller;
 
 import org.elastos.entity.HdTxEntity;
 import org.elastos.entity.RawTxEntity;
+import org.elastos.entity.SetDidInfoEntity;
 import org.elastos.service.ElaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -91,5 +92,93 @@ public class ElaOfflineController extends BaseController{
        return call(reqBody,RawTxEntity.class,"sendRawTx",elaService);
     }
 
+    /**
+     * request  : {
+     *     "inputs"  : ["xxx","yyy"],
+     *     "outputs" : [{
+     *         "addr":"zzz",
+     *         "amt" :200
+     *     },{
+     *         "addr":"www",
+     *         "amt":240
+     *     }]
+     * }
+     *
+     * response :{
+     *               "publicAddr":"EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+     *               "settings":{
+     *                  "did":"iczhaJiyRj4LFsw4YT6CqtQET8mFWi29Pj",
+     *                  "info":{
+     *                      "family":{
+     *                          "child":4000,
+     *                          "money":10000,
+     *                          "history":"hey myfriend,watch your language"
+     *                      }
+     *                  }
+     *              }
+     *           }
+     * @param reqBody
+     * @return
+     */
+    @RequestMapping(value = "/Offline/setDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
+    @ResponseBody
+    public String setDidInfo(@RequestAttribute String reqBody ){
 
+        return call(reqBody, SetDidInfoEntity.class,"setDidInfoOffline",elaService);
+    }
+
+    /**
+     * request  : {
+     *     "inputs"  : ["xxx","yyy"],
+     *     "outputs" : [{
+     *         "addr":"zzz",
+     *         "amt" :200
+     *     },{
+     *         "addr":"www",
+     *         "amt":240
+     *     }]
+     * }
+     *
+     * response :
+     * {
+     *     "result": {
+     *         "Transactions": [
+     *             {
+     *                 "UTXOInputs": [
+     *                     {
+     *                         "address": "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+     *                         "txid": "76943c5a9999c2eac3dbfbbf543154c7687606fedce54e462af36f7dbc7f6245",
+     *                         "index": 1
+     *                     }
+     *                 ],
+     *                 "Fee": 10000,
+     *                 "Outputs": [
+     *                     {
+     *                         "address":"XKUh4GLhFJiqAMTF6HyWQrV9pK9HcGUdfJ",
+     *                         "amount":100000
+     *                     },
+     *                     {
+     *                       "address":"EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+     *                       "amount":34329900
+     *                     }
+     *                 ],
+     *                 "CrossChainAsset":[
+     *                    {
+     *                        "address":"EQSpUzE4XYJhBSx5j7Tf2cteaKdFdixfVB",
+     *                        "amount":90000
+     *                    }
+     *                 ]
+     *             }
+     *         ]
+     *     },
+     *     "status": 200
+     * }
+     * @param reqBody
+     * @return
+     */
+    @RequestMapping(value = "/createCrossTx",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
+    @ResponseBody
+    public String genCrossTxData(@RequestAttribute String reqBody ){
+        return call(reqBody,HdTxEntity.class,"genCrossHdTx",elaService);
+    }
 }

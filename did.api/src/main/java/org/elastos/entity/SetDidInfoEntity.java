@@ -14,8 +14,17 @@ import java.util.List;
  * 9/27/18
  */
 public class SetDidInfoEntity<T> {
+    private String publicAddr;
     private String privateKey;
     private Setting settings;
+
+    public String getPublicAddr() {
+        return publicAddr;
+    }
+
+    public void setPublicAddr(String publicAddr) {
+        this.publicAddr = publicAddr;
+    }
 
     public String getPrivateKey() {
         return privateKey;
@@ -34,10 +43,20 @@ public class SetDidInfoEntity<T> {
     }
 
     public class Setting {
+        private String did;
         private String privateKey;
         private T info;
         private List<String> txIds;
         private String key;
+
+
+        public String getDid() {
+            return did;
+        }
+
+        public void setDid(String did) {
+            this.did = did;
+        }
 
         public String getKey() {
             return key;
