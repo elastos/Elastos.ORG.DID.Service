@@ -72,8 +72,8 @@ public class ElaService {
         return JSON.toJSONString(new ReturnMsgEntity().setResult(result).setStatus(retCodeConfiguration.SUCC()));
     }
 
-    public String mnemonic(){
-        return JSON.toJSONString(new ReturnMsgEntity().setResult(ElaHdSupport.generateMnemonic()).setStatus(retCodeConfiguration.SUCC()));
+    public String mnemonic(String type){
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(ElaHdSupport.generateMnemonic(type.equals("chinese")?MnemonicType.CHINESE:MnemonicType.ENGLISH)).setStatus(retCodeConfiguration.SUCC()));
     }
 
     public String genHdWallet(HdWalletEntity entity) throws Exception{
