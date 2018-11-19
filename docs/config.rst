@@ -24,7 +24,7 @@ The code is written in java . make sure you add jdk in your environment.
 
 3. install project 
 
-* mvn install -Dmaven.test.skip
+* mvn install -Dmaven.test.skip -Dgpg.skip
 
 4. start your project
 
