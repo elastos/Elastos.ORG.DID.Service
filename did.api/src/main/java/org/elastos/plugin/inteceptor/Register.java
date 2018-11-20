@@ -7,6 +7,8 @@
 package org.elastos.plugin.inteceptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -20,7 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  */
 @Component
-public class InteceptorRegister implements WebMvcConfigurer {
+public class Register implements WebMvcConfigurer {
 
     @Autowired
     private ApiInterceptor interceptor;
@@ -28,5 +30,16 @@ public class InteceptorRegister implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(interceptor);
+    }
+
+    @Bean
+    public FilterRegistrationBean<CorsFilter> corsFilter(){
+        FilterRegistrationBean<CorsFilter> registrationBean
+                = new FilterRegistrationBean<>();
+
+        registrationBean.setFilter(new CorsFilter());
+        registrationBean.addUrlPatterns("/*");
+
+        return registrationBean;
     }
 }

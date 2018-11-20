@@ -22,6 +22,15 @@ public class BasicConfiguration {
     private long ONE_ELA;
     private double FEE;
     private double CROSS_CHAIN_FEE;
+    private boolean CROSS_DOMAIN;
+
+    public boolean isCROSS_DOMAIN() {
+        return CROSS_DOMAIN;
+    }
+
+    public void setCROSS_DOMAIN(boolean CROSS_DOMAIN) {
+        this.CROSS_DOMAIN = CROSS_DOMAIN;
+    }
 
     public double CROSS_CHAIN_FEE(){
         return CROSS_CHAIN_FEE;

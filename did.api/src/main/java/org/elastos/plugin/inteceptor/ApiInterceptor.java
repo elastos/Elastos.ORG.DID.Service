@@ -6,8 +6,11 @@
  */
 package org.elastos.plugin.inteceptor;
 
+import org.elastos.conf.BasicConfiguration;
+import org.elastos.controller.ElaChainController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 
 /**
  *
@@ -44,6 +48,8 @@ public class ApiInterceptor extends HandlerInterceptorAdapter {
         String queryString = request.getQueryString();
         request.setAttribute("reqBody",reqBody);
         logger.debug("method = {},reqBody = {},requestURI = {},queryString={}" , method , reqBody,requestURI,queryString);
+
+
         return super.preHandle(request, response, handler);
     }
 
