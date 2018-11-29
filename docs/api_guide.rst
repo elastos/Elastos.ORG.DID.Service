@@ -657,6 +657,7 @@ Set DID information
 setting information into did. the first private key is used to pay the miner fee. the second private key is the private key of did ,used to sign the info.
 and we give the recommended format to write a did property. the first Status is the status of the did , it can be 1 or 0 ,1 stand for discard the DID, 0
 stand for DID status normal ,the second Status is the did key status , it also can be 1 or 0 , 0 stand for discard the DID key , 1 stand for Did key status normal
+
 .. http:post:: /api/1/setDidInfo
 
    **Example Request**:
