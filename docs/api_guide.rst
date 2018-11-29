@@ -655,7 +655,8 @@ using private key to retrive did .
 Set DID information
 ----------------------
 setting information into did. the first private key is used to pay the miner fee. the second private key is the private key of did ,used to sign the info.
-
+and we give the recommended format to write a did property. the first Status is the status of the did , it can be 1 or 0 ,1 stand for discard the DID, 0
+stand for DID status normal ,the second Status is the did key status , it also can be 1 or 0 , 0 stand for discard the DID key , 1 stand for Did key status normal
 .. http:post:: /api/1/setDidInfo
 
    **Example Request**:
@@ -666,18 +667,24 @@ setting information into did. the first private key is used to pay the miner fee
       Host: localhost
 
         {
-          "privateKey":"C740869D015E674362B1F441E3EDBE1CBCF4FE8B709AA1A77E5CCA2C92BAF99D",
-          "settings":{
-              "privateKey":"E763239857B390502289CF75FF06EEEDC3252A302C50E1CBB7E5FAC8A703486F",
-              "info":{
-                  "family":{
-                      "child":4000,
-                      "money":10000,
-                      "history":"hey myfriend,watch your language"
-                  }
-              }
-          }
+            "privateKey":"C740869D015E674362B1F441E3EDBE1CBCF4FE8B709AA1A77E5CCA2C92BAF99D",
+            "settings":{
+                "privateKey":"E763239857B390502289CF75FF06EEEDC3252A302C50E1CBB7E5FAC8A703486F",
+                "info":{
+        		    "Tag":"DID Property",
+        		    "Ver":"1.0",
+        		    "Status":1,
+        		    "Properties": [
+        		        {
+        		            "Key":"clark",
+        		            "Value":"hello,world",
+        		            "Status": 1
+        		        }
+        		    ]
+                }
+            }
         }
+
 
    **Example Response**:
 
