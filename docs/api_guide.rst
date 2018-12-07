@@ -364,7 +364,171 @@ send raw transaction
           "status": 200
       }
 
+get address transaction history
+------------------------------------------------
+check transaction history of Address
 
+.. http:get:: /api/1/history/(string:`addr`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/history/EQoascGFzdQ1rLKfNEavJKTm3hMRhBaXBT HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "History":[
+                    {
+                        "Txid":"71eedccf5a45acc17036294b7a1e70c5756dd4c72032cc76d5089c522509096b",
+                        "Type":"income",
+                        "Value":24,
+                        "CreateTime":1544101570,
+                        "Height":175548,
+                        "Fee":100,
+                        "Inputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ],
+                        "Outputs":[
+                            "EQoascGFzdQ1rLKfNEavJKTm3hMRhBaXBT",
+                            "EQoascGFzdQ1rLKfNEavJKTm3hMRhBaXBT",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ]
+                    }
+                ],
+                "TotalNum":1
+            },
+            "status":200
+        }
+
+
+.. http:get:: /api/1/history/(string:`addr`)?pageSize=(int:`pageSize`)&pageNum=(int:`pageNum`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/history/EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA?pageSize=4&pageNum=1 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "History":[
+                    {
+                        "Txid":"58e11ffffafad7456835dc3eff8b28ec0d0b2aa39855d79bfb3e5c52b4cc308f",
+                        "Type":"income",
+                        "Value":8990000,
+                        "CreateTime":1538114443,
+                        "Height":38666,
+                        "Fee":10000,
+                        "Inputs":[
+
+                        ],
+                        "Outputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ]
+                    },
+                    {
+                        "Txid":"b04714ff7076e18efeb9963f99af2f10bd870d39a1774e0821b71640d6b14e52",
+                        "Type":"spend",
+                        "Value":100,
+                        "CreateTime":1538115578,
+                        "Height":38667,
+                        "Fee":100,
+                        "Inputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ],
+                        "Outputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ]
+                    },
+                    {
+                        "Txid":"49eb7f1335d89a9c43446613850d1b763a5f84cad0d1d039ab5726125d2eab47",
+                        "Type":"spend",
+                        "Value":100,
+                        "CreateTime":1538203592,
+                        "Height":39046,
+                        "Fee":100,
+                        "Inputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ],
+                        "Outputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ]
+                    },
+                    {
+                        "Txid":"d7d8b34944790cf2e1fa47851612ddb4eb7e3f5bd75a4af2227d3786b6f4c122",
+                        "Type":"spend",
+                        "Value":100,
+                        "CreateTime":1539238227,
+                        "Height":44755,
+                        "Fee":100,
+                        "Inputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ],
+                        "Outputs":[
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
+                            "EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA"
+                        ]
+                    }
+                ],
+                "TotalNum":55295
+            },
+            "status":200
+        }
+
+get did information
+------------------------------------------------
+check did key's value
+
+.. http:get:: /api/1/did/(string:`did`)/(string:`key`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/did/iYnguKQcpeVyrpN6edamSkky1brvQvCWr6/clark HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "Did":"iYnguKQcpeVyrpN6edamSkky1brvQvCWr6",
+                "Did_status":1,
+                "Public_key":"0354E3AE040052CD61A38DF72E189EDCBBB8BA81599DED25019E286F2E013A3726",
+                "Property_key":"clark",
+                "Property_value":"hello,world",
+                "Txid":"c39dd1463678146467ea1b43d8905e75ac34e727a4c36824410089a6682b43c8",
+                "Block_time":1543902641,
+                "Height":66480
+            },
+            "status":200
+        }
 
 Local Service API
 =================================
@@ -697,48 +861,6 @@ stand for DID status normal ,the second Status is the did key status , it also c
       {
           "result": "1170c18870d2547207b85bd9859dc97886ca8f570399da0bcfb40a0bdc2a1b20",
           "status": 200
-      }
-
-Get DID information
-----------------------
-get value from did using transaction hash and `key` , the returned `result.did` is the did that has the information.
-
-.. http:post:: /api/1/getDidInfo
-
-   **Example Request**:
-
-   .. sourcecode:: http
-
-      POST /api/1/getDidInfo HTTP/1.1
-      Host: localhost
-
-        {
-            "txIds":[
-                "667fb8161fd9768529580c9c3de1f971c94fc721000694aa3670b4089867284d",
-                "f1e80bd3ebe4bd6a5e9757d6fcdf52d5ad83723e149a3d6cea4a946c8c970d3b",
-                "4213d73e3764750cbab09593db213ac1ea222947d91e6e6d2c243d2461bd034c",
-                "404496578764f0d57b138c086dbc37d1e9d2653aa6bb5f2661bf548c5f9942e2"
-            ],
-            "key":"family"
-        }
-
-   **Example Response**:
-
-   .. sourcecode:: http
-
-      HTTP/1.1 200 OK
-      Content-Type: application/json
-
-      {
-            "result": {
-                "data": {
-                    "money": 10000,
-                    "history": "hey,watch your language",
-                    "child": 4
-                },
-                "did": "iYnguKQcpeVyrpN6edamSkky1brvQvCWr6"
-            },
-            "status": 200
       }
 
 transfer DID asset using private key
