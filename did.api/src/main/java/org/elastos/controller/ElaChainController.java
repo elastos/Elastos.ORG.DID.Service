@@ -95,18 +95,11 @@ public class ElaChainController extends BaseController{
     }
 
 
-    @RequestMapping(value = "/did",method = RequestMethod.GET)
+    @RequestMapping(value = "/gen/did",method = RequestMethod.GET)
     @ResponseBody
     public String createDID(){
 
         return call(null,null,"createDid",service);
-    }
-
-    @RequestMapping(value = "/did/{privateKey}",method = RequestMethod.GET)
-    @ResponseBody
-    public String retriveDID(@PathVariable("privateKey") String privateKey){
-
-        return call(privateKey,String.class,"retriveDid",service);
     }
 
     @RequestMapping(value = "/sign",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
@@ -123,7 +116,7 @@ public class ElaChainController extends BaseController{
         return call(reqBody,SignDataEntity.class,"verify",service);
     }
 
-    @RequestMapping(value = "/did/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
+    @RequestMapping(value = "/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     @ResponseBody
     public String didTransfer(@RequestAttribute String reqBody){
 
