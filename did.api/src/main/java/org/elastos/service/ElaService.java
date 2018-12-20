@@ -527,6 +527,10 @@ public class ElaService {
             for (int i = 0; i <= index; i++) {
                 Map<String, Object> utxoInputsDetail = new HashMap<>();
                 Map<String, Object> utxoM = utxolm.get(i);
+                double utxoVal = Double.valueOf(utxoM.get("Value")+"");
+                if (utxoVal == 0){
+                    continue;
+                }
                 utxoInputsDetail.put("txid", utxoM.get("Txid"));
                 utxoInputsDetail.put("index", utxoM.get("Index"));
                 utxoInputsDetail.put("address", addr);
