@@ -262,12 +262,15 @@ public class ElaService {
         ChainType type = rawTxEntity.getType();
         ReturnMsgEntity.ELAReturnMsg msg = JsonUtil.jsonStr2Entity(HttpKit.post(nodeConfiguration.sendRawTransaction(type),rawTx),ReturnMsgEntity.ELAReturnMsg.class);
         long status = 0;
+        Object rst = "";
         if(msg.getError() == 0){
             status = retCodeConfiguration.SUCC();
+            rst = msg.getResult();
         }else{
             status = retCodeConfiguration.PROCESS_ERROR();
+            rst = msg.getDesc();
         }
-        return JSON.toJSONString(new ReturnMsgEntity().setResult(msg.getResult()).setStatus(status));
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(rst).setStatus(status));
     }
 
     /**
