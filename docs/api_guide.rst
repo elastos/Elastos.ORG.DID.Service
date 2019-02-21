@@ -498,7 +498,10 @@ check transaction history of Address
 
 get did information
 ------------------------------------------------
-check did key's value
+check did key's value ,
+
+.. note::
+    this api provided by `Elastos.ORG.API.Misc <https://github.com/elastos/Elastos.ORG.API.Misc>`_ ,so you need to deploy it if you want to use it.
 
 .. http:get:: /api/1/did/(string:`did`)/(string:`key`)
 
