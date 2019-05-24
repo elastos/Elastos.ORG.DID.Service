@@ -28,7 +28,7 @@ retcode.PROCESS_ERROR    = 10001
 basic.ONE_ELA            = 100000000
 basic.FEE                = 0.000001
 basic.CROSS_CHAIN_FEE    = 0.0001
-basic.CROSS_DOMAIN       = true
+basic.CROSS_DOMAIN       = false
 
 ## application
 server.port              = 8080
