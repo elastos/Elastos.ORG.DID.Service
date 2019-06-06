@@ -9,6 +9,7 @@ package org.elastos.service;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
@@ -16,8 +17,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elastos.api.SingleSignTransaction;
 import org.elastos.conf.BasicConfiguration;
-import org.elastos.conf.DidConfiguration;
-import org.elastos.conf.NodeConfiguration;
+import org.elastos.conf.SidechainConfiguration;
 import org.elastos.conf.RetCodeConfiguration;
 import org.elastos.ela.ECKey;
 import org.elastos.ela.Ela;
@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -42,20 +43,18 @@ import javax.xml.bind.DatatypeConverter;
  * Apr 21, 2018 12:45:54 PM
  */
 @Service
-public class ElaService {
+public class SideChainService {
 
     private static final String CHARSET = "UTF-8";
-
-    @Autowired
-    private NodeConfiguration nodeConfiguration;
+    private static final String BURN_ADDRESS = "0000000000000000000000000000000000";
     @Autowired
     private BasicConfiguration basicConfiguration;
     @Autowired
     private RetCodeConfiguration retCodeConfiguration;
     @Autowired
-    private DidConfiguration didConfiguration;
+    private SidechainConfiguration sidechainConfiguration;
 
-    private static Logger logger = LoggerFactory.getLogger(ElaService.class);
+    private static Logger logger = LoggerFactory.getLogger(SideChainService.class);
 
     /**
      * create a ela wallet
@@ -182,7 +181,7 @@ public class ElaService {
             utxoIndex = z;
             for( int i=0; i<utxolm.size(); i++) {
                 index = i;
-                spendMoney += Double.valueOf(utxolm.get(i).get("Value")+"");
+                spendMoney += Double.valueOf(utxolm.get(i).get("amount")+"");
                 if( Math.round(spendMoney * basicConfiguration.ONE_ELA()) >= Math.round((smAmt + (basicConfiguration.CROSS_CHAIN_FEE() * 2)) * basicConfiguration.ONE_ELA())) {
                     hasEnoughFee = true;
                     break out;
@@ -207,12 +206,12 @@ public class ElaService {
             for(int i=0;i<=subIndex;i++) {
                 Map<String,Object> utxoInputsDetail = new HashMap<>();
                 Map<String,Object> utxoM = utxolm.get(i);
-                double utxoVal = Double.valueOf(utxoM.get("Value")+"");
+                double utxoVal = Double.valueOf(utxoM.get("amount")+"");
                 if (utxoVal == 0){
                     continue;
                 }
-                utxoInputsDetail.put("txid",  utxoM.get("Txid"));
-                utxoInputsDetail.put("index",  utxoM.get("Index"));
+                utxoInputsDetail.put("txid",  utxoM.get("txid"));
+                utxoInputsDetail.put("index",  utxoM.get("vout"));
                 utxoInputsDetail.put("address",  addr);
                 utxoInputsArray.add(utxoInputsDetail);
             }
@@ -220,13 +219,7 @@ public class ElaService {
         List utxoOutputsArray = new ArrayList<>();
         txListMap.put("Outputs", utxoOutputsArray);
         Map<String,Object> brokerOutputs = new HashMap<>();
-        if (type == ChainType.MAIN_DID_CROSS_CHAIN){
-            brokerOutputs.put("address", didConfiguration.getMainChainAddress());
-        }else if(type == ChainType.DID_MAIN_CROSS_CHAIN){
-            brokerOutputs.put("address", didConfiguration.getBurnAddress());
-        }else{
-            throw new ApiRequestDataException("no such transfer type");
-        }
+        brokerOutputs.put("address", BURN_ADDRESS);
         brokerOutputs.put("amount", Math.round((smAmt+basicConfiguration.CROSS_CHAIN_FEE()) * basicConfiguration.ONE_ELA()));
         utxoOutputsArray.add(brokerOutputs);
 
@@ -258,21 +251,29 @@ public class ElaService {
      * @return
      */
     public String getTxByTxId(String txid){
-        return reqChainData(nodeConfiguration.sendRawTransaction(ChainType.DID_SIDECHAIN)+ "/" + txid);
+        return callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("getrawtransaction").setParams(new HashMap<String,Object>() {
+            {
+                this.put("txid",txid);
+                this.put("verbose",true);
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
     }
 
     public String sendRawTx(RawTxEntity rawTxEntity){
-        String rawTx = JSON.toJSONString(rawTxEntity);
         ChainType type = rawTxEntity.getType();
-        ReturnMsgEntity.ELAReturnMsg msg = JsonUtil.jsonStr2Entity(HttpKit.post(nodeConfiguration.sendRawTransaction(type),rawTx),ReturnMsgEntity.ELAReturnMsg.class);
+        ReturnMsgEntity.ELAReturnMsg msg = JsonUtil.jsonStr2Entity(callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("sendrawtransaction").setParams(new HashMap<String,Object>() {
+            {
+                this.put("data",rawTxEntity.getData());
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass()),ReturnMsgEntity.ELAReturnMsg.class);
         long status = 0;
         Object rst = "";
-        if(msg.getError() == 0){
+        if(msg.getError() == null){
             status = retCodeConfiguration.SUCC();
             rst = msg.getResult();
         }else{
             status = retCodeConfiguration.PROCESS_ERROR();
-            rst = msg.getDesc();
+            rst = msg.getError().getMessage();
         }
         return JSON.toJSONString(new ReturnMsgEntity().setResult(rst).setStatus(status));
     }
@@ -297,16 +298,7 @@ public class ElaService {
      */
     public String getCurrentHeight(){
 
-        return reqChainData(nodeConfiguration.getBlockHeight(ChainType.MAIN_CHAIN));
-    }
-
-    /**
-     * get block txs by height
-     * @return
-     */
-    public String getBlockTxsByHeight(String height){
-
-        return reqChainData(nodeConfiguration.getBlockTxByHeight(ChainType.MAIN_CHAIN)+ height);
+        return callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("getcurrentheight")),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
     }
 
     /**
@@ -315,8 +307,11 @@ public class ElaService {
      * @return
      */
     public String getBlockByHeight(String height){
-
-        return reqChainData(nodeConfiguration.getBlockByHeight(ChainType.MAIN_CHAIN)+ height);
+        return callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("getblockbyheight").setParams(new HashMap<String,Object>() {
+            {
+                this.put("height",Integer.valueOf(height));
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
     }
 
     /**
@@ -326,27 +321,12 @@ public class ElaService {
      */
     public String getBlockByHash(String hash){
 
-        return reqChainData(nodeConfiguration.getBlockByhash(ChainType.MAIN_CHAIN)+ hash);
-    }
-
-    /**
-     * get transaction by hash
-     * @param hash
-     * @return
-     */
-    public String getTransactionByHash(String hash){
-
-        return reqChainData(nodeConfiguration.getTransaction(ChainType.MAIN_CHAIN)+ hash);
-    }
-
-    /**
-     * get transaction by hash
-     * @param hash
-     * @return
-     */
-    public String getTransactionByHash(String hash,ChainType type){
-
-        return reqChainData(nodeConfiguration.getTransaction(type)+ hash);
+        return callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("getblock").setParams(new HashMap<String,Object>() {
+            {
+                this.put("blockhash",hash);
+                this.put("verbosity",2);
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
     }
 
     /**
@@ -358,31 +338,28 @@ public class ElaService {
 
         checkAddr(address);
 
-        String result = HttpKit.get(nodeConfiguration.getUtxoByAddr(ChainType.MAIN_CHAIN)+ address);
+        String result = callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("listunspent").setParams(new HashMap<String,Object>() {
+            {
+                this.put("addresses",new String[]{address});
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
 
         Map<String,Object>  resultMap = (Map<String,Object>) JSON.parse(result);
 
-        Object resObj = resultMap.get("Result");
+        List<Map<String,Object>> resObj = (List)resultMap.get("result");
 
         if (resObj == null || StrKit.isBlank(resObj+"") || (resObj +"").equalsIgnoreCase("null")){
-
             return JSON.toJSONString(new ReturnMsgEntity().setResult("0.0").setStatus(retCodeConfiguration.SUCC()));
-
         }
 
-        Map m = ((List<Map>)resultMap.get("Result")).get(0);
-
-        List<Map> lm = (List<Map>)m.get("Utxo");
-
         BigDecimal total = new BigDecimal("0.0");
-
-        for(int i=0;i<lm.size();i++){
-            Map md = lm.get(i);
-            BigDecimal v = new BigDecimal((String)md.get("Value"));
+        for(int i=0;i<resObj.size();i++){
+            Map md = resObj.get(i);
+            BigDecimal v = new BigDecimal((String) md.get("amount"));
             total = total.add(v);
         }
 
-        return JSON.toJSONString(new ReturnMsgEntity().setResult(total.toString()).setStatus(retCodeConfiguration.SUCC()));
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(total.setScale(8, RoundingMode.HALF_UP).toString()).setStatus(retCodeConfiguration.SUCC()));
     }
 
     /**
@@ -394,7 +371,11 @@ public class ElaService {
 
         checkAddr(address);
 
-        return reqChainData(nodeConfiguration.getUtxoByAddr(ChainType.MAIN_CHAIN)+ address);
+        return callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("listunspent").setParams(new HashMap<String,Object>() {
+            {
+                this.put("addresses",new String[]{address});
+            }
+        })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
     }
 
     /**
@@ -480,20 +461,33 @@ public class ElaService {
     }
 
 
-
-
     /**
-     * using http request chain data.
-     * @param requestUrl
+     *
+     * @param prefix
+     * @param data
      * @return
      */
-    private String reqChainData(String requestUrl){
+    private String callRpc(String prefix,String data,String user , String pass){
 
-        String result = HttpKit.get(requestUrl);
+        Map<String,String> header = new HashMap<>();
 
-        Map<String,Object>  resultMap = (Map<String,Object>) JSON.parse(result);
+        header.put("Authorization","Basic " + Base64.getEncoder().encodeToString((user +":" + pass).getBytes()));
 
-        return JSON.toJSONString(new ReturnMsgEntity().setResult(resultMap.get("Result")).setStatus(retCodeConfiguration.SUCC()));
+        header.put("Content-Type","application/json");
+
+        HttpURLConnection connection ;
+
+        String result = HttpKit.post(prefix,data,header);
+
+        ReturnMsgEntity.ELAReturnMsg resultMap = JSON.parseObject(result,ReturnMsgEntity.ELAReturnMsg.class);
+
+        Object rst = resultMap.getResult();
+
+        if(rst == null){
+            rst = resultMap.getError().getMessage();
+        }
+
+        return JSON.toJSONString(new ReturnMsgEntity().setResult(rst).setStatus(retCodeConfiguration.SUCC()));
 
     }
     /**
@@ -534,12 +528,12 @@ public class ElaService {
             for (int i = 0; i <= index; i++) {
                 Map<String, Object> utxoInputsDetail = new HashMap<>();
                 Map<String, Object> utxoM = utxolm.get(i);
-                double utxoVal = Double.valueOf(utxoM.get("Value")+"");
+                double utxoVal = Double.valueOf(utxoM.get("amount")+"");
                 if (utxoVal == 0){
                     continue;
                 }
-                utxoInputsDetail.put("txid", utxoM.get("Txid"));
-                utxoInputsDetail.put("index", utxoM.get("Index"));
+                utxoInputsDetail.put("txid", utxoM.get("txid"));
+                utxoInputsDetail.put("index", utxoM.get("vout"));
                 utxoInputsDetail.put("address", addr);
                 utxoInputsArray.add(utxoInputsDetail);
             }
@@ -579,16 +573,12 @@ public class ElaService {
         Map m = JsonUtil.jsonToMap(JSONObject.fromObject(result));
         List<Map> lm = null;
         try {
-            lm = ((List<Map>) m.get("Result"));
+            lm = (List<Map>)m.get("result");
+            return lm;
         } catch (Exception ex) {
             logger.warn(" address has no utxo yet .");
             return null;
         }
-        List<Map> l = null;
-        if (lm != null) {
-            l = (List<Map>) lm.get(0).get("Utxo");
-        }
-        return l;
     }
 
 
@@ -597,7 +587,11 @@ public class ElaService {
         for(int i=0;i<addrs.size();i++){
             String addr = addrs.get(i);
             checkAddr(addr);
-            String result = HttpKit.get(nodeConfiguration.getUtxoByAddr(type) + addr);
+            String result = callRpc(sidechainConfiguration.getDid_prefix(),JSON.toJSONString(new RpcReq("listunspent").setParams(new HashMap<String,Object>() {
+                {
+                    this.put("addresses",new String[]{addr});
+                }
+            })),sidechainConfiguration.getDid_rpc_user(),sidechainConfiguration.getDid_rpc_pass());
             rstlist.add(result);
         }
         return rstlist;
@@ -678,10 +672,13 @@ public class ElaService {
         for(int i=0;i<utxoStrLst.size();i++){
             String utxoStr = utxoStrLst.get(i);
             List<Map> utxo = stripUtxo(utxoStr);
+            if(utxo == null){
+                continue;
+            }
             utxoTotal.add(utxo);
         }
 
-        if(utxoTotal == null){
+        if(utxoTotal.size() == 0){
             throw new ApiRequestDataException(Errors.NOT_ENOUGH_UTXO.val());
         }
 
@@ -726,7 +723,7 @@ public class ElaService {
             utxoIndex = z;
             for( int i=0; i<utxolm.size(); i++) {
                 index = i;
-                spendMoney += Double.valueOf(utxolm.get(i).get("Value")+"");
+                spendMoney += Double.valueOf(utxolm.get(i).get("amount")+"");
                 if( Math.round(spendMoney * basicConfiguration.ONE_ELA()) >= Math.round((smAmt + (basicConfiguration.CROSS_CHAIN_FEE() * 2)) * basicConfiguration.ONE_ELA())) {
                     hasEnoughFee = true;
                     break out;
@@ -754,12 +751,12 @@ public class ElaService {
                 Map<String,Object> utxoInputsDetail = new HashMap<>();
                 Map<String,Object> utxoM = utxolm.get(i);
                 Map<String,Object> privM = new HashMap<>();
-                double utxoVal = Double.valueOf(utxoM.get("Value")+"");
+                double utxoVal = Double.valueOf(utxoM.get("amount")+"");
                 if (utxoVal == 0){
                     continue;
                 }
-                utxoInputsDetail.put("txid",  utxoM.get("Txid"));
-                utxoInputsDetail.put("index",  utxoM.get("Index"));
+                utxoInputsDetail.put("txid",  utxoM.get("txid"));
+                utxoInputsDetail.put("index",  utxoM.get("vout"));
                 utxoInputsDetail.put("address",  addr);
                 privM.put("privateKey",  privateKey);
                 utxoInputsArray.add(utxoInputsDetail);
@@ -769,13 +766,7 @@ public class ElaService {
         List utxoOutputsArray = new ArrayList<>();
         txListMap.put("Outputs", utxoOutputsArray);
         Map<String,Object> brokerOutputs = new HashMap<>();
-        if (type == ChainType.MAIN_DID_CROSS_CHAIN){
-            brokerOutputs.put("address", didConfiguration.getMainChainAddress());
-        }else if(type == ChainType.DID_MAIN_CROSS_CHAIN){
-            brokerOutputs.put("address", didConfiguration.getBurnAddress());
-        }else{
-            throw new ApiRequestDataException("no such transfer type");
-        }
+        brokerOutputs.put("address", BURN_ADDRESS);
         brokerOutputs.put("amount", Math.round((smAmt+basicConfiguration.CROSS_CHAIN_FEE()) * basicConfiguration.ONE_ELA()));
         utxoOutputsArray.add(brokerOutputs);
 
@@ -851,7 +842,7 @@ public class ElaService {
             utxoIndex = z;
             for( int i=0; i<utxolm.size(); i++) {
                 index = i;
-                spendMoney += Double.valueOf(utxolm.get(i).get("Value")+"");
+                spendMoney += Double.valueOf(utxolm.get(i).get("amount")+"");
                 if( Math.round(spendMoney * basicConfiguration.ONE_ELA()) >= Math.round((smAmt + basicConfiguration.FEE()) * basicConfiguration.ONE_ELA())) {
                     hasEnoughFee = true;
                     break out;
@@ -877,12 +868,12 @@ public class ElaService {
             for(int i=0;i<=subIndex;i++) {
                 Map<String,Object> utxoInputsDetail = new HashMap<>();
                 Map<String,Object> utxoM = utxolm.get(i);
-                double utxoVal = Double.valueOf(utxoM.get("Value")+"");
+                double utxoVal = Double.valueOf(utxoM.get("amount")+"");
                 if (utxoVal == 0){
                     continue;
                 }
-                utxoInputsDetail.put("txid",  utxoM.get("Txid"));
-                utxoInputsDetail.put("index",  utxoM.get("Index"));
+                utxoInputsDetail.put("txid",  utxoM.get("txid"));
+                utxoInputsDetail.put("index",  utxoM.get("vout"));
                 utxoInputsDetail.put("privateKey",  privateKey);
                 utxoInputsDetail.put("address",  addr);
                 utxoInputsArray.add(utxoInputsDetail);
@@ -925,45 +916,6 @@ public class ElaService {
         return sendRawTx(entity);
     }
 
-    public String setDidInfoOffline(SetDidInfoEntity info) throws Exception {
-        String data = null;
-        SetDidInfoEntity.Setting setting = info.getSettings();
-        try {
-            data = JSON.toJSONString(setting.getInfo());
-        }catch (Exception ex){
-            throw new ApiRequestDataException("DID info must be a json object");
-        }
-        // using to sign did setting info
-        String privateKey = setting.getPrivateKey();
-        String recevAddr = didConfiguration.getAddress();
-        String fee = didConfiguration.getFee();
-        TransferParamEntity transferParamEntity = new TransferParamEntity();
-        SignDataEntity signDataEntity = new SignDataEntity();
-        signDataEntity.setPrivateKey(privateKey);
-        signDataEntity.setMsg(data);
-        String response = sign(signDataEntity);
-        Map respMap = (Map)JSON.parse(response);
-        String rawMemo = JSON.toJSONString(respMap.get("result"));
-        logger.debug("rawMemo:{}",rawMemo);
-        transferParamEntity.setMemo(rawMemo);
-        String payPrivKey = info.getPrivateKey();
-        String addr = Ela.getAddressFromPrivate(payPrivKey);
-        List<Map> lstMap = new ArrayList<>();
-        Map sm = new HashMap();
-        sm.put("address",addr);
-        sm.put("privateKey",payPrivKey);
-        lstMap.add(sm);
-        transferParamEntity.setSender(lstMap);
-        List<Map> receiverList = new ArrayList<>();
-        Map receivMap = new HashMap();
-        receivMap.put("address",recevAddr);
-        receivMap.put("amount",fee);
-        receiverList.add(receivMap);
-        transferParamEntity.setReceiver(receiverList);
-        transferParamEntity.setType(ChainType.DID_SIDECHAIN);
-        return transfer(transferParamEntity);
-    }
-
     /**
      * set did info into memo
      * @param info
@@ -980,8 +932,8 @@ public class ElaService {
         }
         // using to sign did setting info
         String privateKey = setting.getPrivateKey();
-        String recevAddr = didConfiguration.getAddress();
-        String fee = didConfiguration.getFee();
+        String recevAddr = Ela.getAddressFromPrivate(privateKey);
+        String fee = "0";
         TransferParamEntity transferParamEntity = new TransferParamEntity();
         SignDataEntity signDataEntity = new SignDataEntity();
         signDataEntity.setPrivateKey(privateKey);
@@ -1010,111 +962,6 @@ public class ElaService {
     }
 
     /**
-     * get did info from memo
-     * @param entity
-     * @return
-     * @throws Exception
-     */
-    public String getDidInfo(GetDidInfoEntity entity) throws Exception{
-
-        List<String> txidList = entity.getTxIds();
-        if(txidList.size() == 0){
-            return JSON.toJSONString(new ReturnMsgEntity().setResult(Errors.DID_NO_SUCH_INFO.val()).setStatus(retCodeConfiguration.SUCC()));
-        }
-        String key = entity.getKey();
-        if(txidList.size()>1){
-            txidList = filterTxByHeight(txidList);
-        }
-        Map resultM = new HashMap();
-        for(int i=0;i<txidList.size();i++){
-            try{
-                String txid = txidList.get(i);
-                String txinfo = getTransactionByHash(txid,ChainType.DID_SIDECHAIN);
-                Map txinfoMap = (Map)JSON.parse(txinfo);
-                Object orst = txinfoMap.get("result");
-                if ((orst instanceof Map) == false){
-                    continue;
-                }
-                Map resultMap = (Map)orst;
-                List<Map> attrList = (List)resultMap.get("attributes");
-                String hexData = (String)attrList.get(0).get("data");
-                Map rawMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexData)));
-                SignDataEntity signDataEntity = new SignDataEntity();
-                String hexMsg = (String)rawMap.get("msg");
-                String pub = (String)rawMap.get("pub");
-                signDataEntity.setMsg(hexMsg);
-                signDataEntity.setSig((String)rawMap.get("sig"));
-                signDataEntity.setPub(pub);
-                String verifyResp = verify(signDataEntity);
-                Map verifyMap = (Map)JSON.parse(verifyResp);
-                Boolean verified = (Boolean)verifyMap.get("result");
-                if (!verified){
-                    continue;
-                }else{
-                    Map rawMsgMap = (Map)JSON.parse(new String(DatatypeConverter.parseHexBinary(hexMsg)));
-                    Object v = rawMsgMap.get(key);
-                    if (v == null){
-                        continue;
-                    }
-                    resultM.put("data",v);
-                    String did = Util.ToAddress(Util.ToCodeHash(Util.CreateSingleSignatureRedeemScript(DatatypeConverter.parseHexBinary(pub),3),3));
-                    resultM.put("did",did);
-                    return JSON.toJSONString(new ReturnMsgEntity().setResult(resultM).setStatus(retCodeConfiguration.SUCC()));
-                }
-            }catch (Exception ex){
-                logger.warn(ex.getMessage());
-                continue;
-            }
-
-        }
-        return JSON.toJSONString(new ReturnMsgEntity().setResult(Errors.DID_NO_SUCH_INFO.val()).setStatus(retCodeConfiguration.SUCC()));
-    }
-
-
-    private List<String> filterTxByHeight(List<String> txids){
-
-        String txStr = "";
-        String seperator = "-";
-
-
-        for(int j=0;j<txids.size();j++){
-
-            String currTxid = txids.get(j);
-            Integer currBlockTime = getBlockTime(currTxid);
-            if(currBlockTime == null){
-                continue;
-            }
-            for(int i=j+1;i<txids.size();i++){
-                String txid = txids.get(i);
-                Integer blocktime = getBlockTime(txid);
-                if(blocktime == null){
-                    continue;
-                }
-                if(blocktime > currBlockTime){
-                    currTxid = txid;
-                    currBlockTime = blocktime;
-                }
-            }
-            txStr += currTxid + seperator;
-        }
-
-        txStr = txStr.substring(0,txStr.length()-1);
-        return Arrays.asList(txStr.split(seperator));
-    }
-
-    private Integer getBlockTime(String txid){
-        String result = getTransactionByHash(txid);
-        Map<String,Object> mr = (Map)JSON.parse(result);
-        Object rmr = mr.get("result");
-        if(!(rmr instanceof Map)){
-            logger.warn("txid is not exists");
-            return null;
-        }
-        Integer blocktime = (Integer)((Map)rmr).get("blocktime");
-        return blocktime;
-    }
-
-    /**
      * make did to mainchain asset transfer
      * @param entity
      * @return
@@ -1123,42 +970,5 @@ public class ElaService {
     public String did2MainCrossTransfer(TransferParamEntity entity) throws Exception {
         entity.setType(ChainType.DID_MAIN_CROSS_CHAIN);
         return transfer(entity);
-    }
-
-
-    /**
-     * set did info into memo
-     * @param info
-     * @return
-     * @throws Exception
-     */
-    public String setDidPayload(SetDidInfoEntity info) throws Exception{
-        String data = null;
-        try {
-            data = JSON.toJSONString(info.getSettings().getInfo());
-        }catch (Exception ex){
-            throw new ApiRequestDataException("DID info must be a json object");
-        }
-        String privateKey = info.getPrivateKey();
-        String recevAddr = didConfiguration.getAddress();
-        String fee = didConfiguration.getFee();
-        TransferParamEntity transferParamEntity = new TransferParamEntity();
-        transferParamEntity.setMemo(data);
-
-        String addr = Ela.getAddressFromPrivate(privateKey);
-        List<Map> lstMap = new ArrayList<>();
-        Map sm = new HashMap();
-        sm.put("address",addr);
-        sm.put("privateKey",privateKey);
-        lstMap.add(sm);
-        transferParamEntity.setSender(lstMap);
-        List<Map> receiverList = new ArrayList<>();
-        Map receivMap = new HashMap();
-        receivMap.put("address",recevAddr);
-        receivMap.put("amount",fee);
-        receiverList.add(receivMap);
-        transferParamEntity.setReceiver(receiverList);
-        transferParamEntity.setType(ChainType.DID_SIDECHAIN);
-        return transfer(transferParamEntity);
     }
 }

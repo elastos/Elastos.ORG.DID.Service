@@ -7,7 +7,7 @@
 package org.elastos.controller;
 
 import org.elastos.entity.*;
-import org.elastos.service.ElaService;
+import org.elastos.service.SideChainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ElaChainController extends BaseController{
 
     @Autowired
-    private ElaService service;
+    private SideChainService service;
 
     @RequestMapping(value = "/createWallet",method = RequestMethod.GET)
     @ResponseBody
@@ -52,13 +52,6 @@ public class ElaChainController extends BaseController{
         return call(null,null,"getCurrentHeight",service);
     }
 
-    @RequestMapping(value = "/txs/{height}",method = RequestMethod.GET)
-    @ResponseBody
-    public String getBlockTxsByHeight(@PathVariable("height") String height){
-
-        return call( height ,String.class,"getBlockTxsByHeight",service);
-    }
-
     @RequestMapping(value = "/block/height/{height}",method = RequestMethod.GET)
     @ResponseBody
     public String getBlockByHeight(@PathVariable("height") String height){
@@ -71,13 +64,6 @@ public class ElaChainController extends BaseController{
     public String getBlockByHash(@PathVariable("hash") String hash){
 
         return call( hash ,String.class,"getBlockByHash",service);
-    }
-
-    @RequestMapping(value = "/block/transaction/{hash}",method = RequestMethod.GET)
-    @ResponseBody
-    public String getTransactionByHash(@PathVariable("hash") String hash){
-
-        return call( hash ,String.class,"getTransactionByHash",service);
     }
 
     @RequestMapping(value = "/balance/{address}",method = RequestMethod.GET)
@@ -128,20 +114,6 @@ public class ElaChainController extends BaseController{
     public String setDidInfo(@RequestAttribute String reqBody){
 
         return call(reqBody,SetDidInfoEntity.class,"setDidInfo",service);
-    }
-
-    @RequestMapping(value = "/getDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-    @ResponseBody
-    public String getDidInfo(@RequestAttribute String reqBody){
-
-        return call(reqBody,GetDidInfoEntity.class,"getDidInfo",service);
-    }
-
-    @RequestMapping(value = "/setDidPayload",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-    @ResponseBody
-    public String getDidPayload(@RequestAttribute String reqBody){
-
-        return call(reqBody,SetDidInfoEntity.class,"setDidPayload",service);
     }
 
     @RequestMapping(value = "/cross/d2m/transfer",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")

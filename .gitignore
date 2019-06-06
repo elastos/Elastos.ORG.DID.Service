@@ -7,3 +7,4 @@
 **/_build
 **/_static
 did.api/src/main/resources/application.properties
+did.api/src/test/java/org/elastos/GrabTest.java

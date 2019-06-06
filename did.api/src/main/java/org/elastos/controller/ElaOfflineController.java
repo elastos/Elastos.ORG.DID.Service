@@ -8,8 +8,7 @@ package org.elastos.controller;
 
 import org.elastos.entity.HdTxEntity;
 import org.elastos.entity.RawTxEntity;
-import org.elastos.entity.SetDidInfoEntity;
-import org.elastos.service.ElaService;
+import org.elastos.service.SideChainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class ElaOfflineController extends BaseController{
     @Autowired
-    private ElaService elaService;
+    private SideChainService elaService;
 
     /**
      * request  : {
@@ -90,41 +89,6 @@ public class ElaOfflineController extends BaseController{
     public String sendRawTx(@RequestAttribute String reqBody){
 
        return call(reqBody,RawTxEntity.class,"sendRawTx",elaService);
-    }
-
-    /**
-     * request  : {
-     *     "inputs"  : ["xxx","yyy"],
-     *     "outputs" : [{
-     *         "addr":"zzz",
-     *         "amt" :200
-     *     },{
-     *         "addr":"www",
-     *         "amt":240
-     *     }]
-     * }
-     *
-     * response :{
-     *               "publicAddr":"EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA",
-     *               "settings":{
-     *                  "did":"iczhaJiyRj4LFsw4YT6CqtQET8mFWi29Pj",
-     *                  "info":{
-     *                      "family":{
-     *                          "child":4000,
-     *                          "money":10000,
-     *                          "history":"hey myfriend,watch your language"
-     *                      }
-     *                  }
-     *              }
-     *           }
-     * @param reqBody
-     * @return
-     */
-    @RequestMapping(value = "/Offline/setDidInfo",method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-    @ResponseBody
-    public String setDidInfo(@RequestAttribute String reqBody ){
-
-        return call(reqBody, SetDidInfoEntity.class,"setDidInfoOffline",elaService);
     }
 
     /**
