@@ -18,6 +18,11 @@ Run with `Maven`：
 </dependency>
 ```
 
+- Update `did.api/src/main/resources/application.properties` and ensure that `node.didPrefix` is set to the endpoint of the Elastos.DID you are using and optionally set `did.address`.
+- Install Project: `mvn install -Dmaven.test.skip -Dgpg.skip`
+
+This will build the JAR file executable which can be found at `did.api/target`, for example v0.0.6 will be `did.api-0.0.6.jar`. 
+
 or `Gradle`:
 
 ```sh
